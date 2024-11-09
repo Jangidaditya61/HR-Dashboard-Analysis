@@ -1,0 +1,79 @@
+DAX (Data Analysis Expressions) Formula 
+
+..................................................................................................
+
+active_employee = IF('Hr Analytics'[Attrition] = "Yes", 'Hr Analytics'[EmployeeCount],0)
+
+..................................................................................................
+
+inactive_employee = IF('Hr Analytics'[Attrition] = "No", 'Hr Analytics'[EmployeeCount],0)
+
+..................................................................................................
+
+Age_Group = 
+    SWITCH(
+        TRUE(),
+        'Hr Analytics'[Age] >= 1 && 'Hr Analytics'[Age] <= 10, "1 To 10",
+        'Hr Analytics'[Age] >= 11 && 'Hr Analytics'[Age] <= 20, "11 To 20",
+        'Hr Analytics'[Age] >= 21 && 'Hr Analytics'[Age] <= 30, "21 To 30",
+        'Hr Analytics'[Age] >= 31 && 'Hr Analytics'[Age] <= 40, "31 To 40",  
+        'Hr Analytics'[Age] >= 41 && 'Hr Analytics'[Age] <= 50, "41 To 50",
+        'Hr Analytics'[Age] >= 51 && 'Hr Analytics'[Age] <= 60, "51 To 60",
+        'Hr Analytics'[Age] >= 61 && 'Hr Analytics'[Age] <= 70, "61 To 70",
+        'Hr Analytics'[Age] >= 71, "71+",
+        "Unknown"
+    )
+
+..................................................................................................
+
+Average Monthly Income = SUM('Hr Analytics'[MonthlyIncome])/SUM('Hr Analytics'[EmployeeCount])
+
+..................................................................................................
+
+Employee Leaving Rate = 
+IF(
+    HASONEVALUE('Hr Analytics'[Attrition]) && VALUES('Hr Analytics'[Attrition]) = "No", 
+  0,
+    DIVIDE(
+        SUMX(
+            FILTER('Hr Analytics', 'Hr Analytics'[Attrition] = "Yes"),
+            'Hr Analytics'[EmployeeCount]
+        ),
+        SUM('Hr Analytics'[EmployeeCount]),
+        0
+    )
+)
+
+..................................................................................................
+
+Experience = SWITCH(TRUE(),'Hr Analytics'[YearsAtCompany]<=0 ,"Freshar",
+                            'Hr Analytics'[YearsAtCompany]>=1 && 'Hr Analytics'[YearsAtCompany]<=5 ,"1 To 5",
+                            'Hr Analytics'[YearsAtCompany]>=6 && 'Hr Analytics'[YearsAtCompany]<=10 ,"6 To 10",
+                            'Hr Analytics'[YearsAtCompany]>=11 && 'Hr Analytics'[YearsAtCompany]<=15 ,"11 To 15",
+                            'Hr Analytics'[YearsAtCompany]>=15 ,"Grater then 15"
+
+                    )
+
+..................................................................................................
+
+GenderPercentage = 
+VAR MaleCount = CALCULATE(COUNTROWS('Hr Analytics'), 'Hr Analytics'[Attrition] = "Yes", 'Hr Analytics'[Gender] = "Male")
+VAR FemaleCount = CALCULATE(COUNTROWS('Hr Analytics'), 'Hr Analytics'[Attrition] = "Yes", 'Hr Analytics'[Gender] = "Female")
+VAR TotalCount = CALCULATE(COUNTROWS('Hr Analytics'), 'Hr Analytics'[Attrition] = "Yes")
+
+VAR MalePercentage = DIVIDE(MaleCount, TotalCount, 0)
+VAR FemalePercentage = DIVIDE(FemaleCount, TotalCount, 0)
+
+RETURN
+    IF(
+        HASONEVALUE('Hr Analytics'[Gender]),
+        SWITCH(
+            TRUE(),
+            VALUES('Hr Analytics'[Gender]) = "Male", MalePercentage,
+            VALUES('Hr Analytics'[Gender]) = "Female", FemalePercentage,
+            0
+        ),
+        MalePercentage + FemalePercentage
+    )
+
+..................................................................................................
